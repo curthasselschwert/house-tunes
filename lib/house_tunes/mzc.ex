@@ -3,14 +3,6 @@ defmodule HouseTunes.MZC do
 
   alias HouseTunes.MZC
 
-  @views [
-    :choose_zone,
-    :choose_source,
-    :view_source,
-    :source_options,
-    :now_playing
-  ]
-
   defstruct current_view: :choose_zone,
             priv: %{
               content: [],
