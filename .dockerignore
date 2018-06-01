@@ -1,0 +1,4 @@
+_build
+pgdata
+deps
+assets/node_modules

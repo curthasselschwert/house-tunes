@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  house_tunes:
+    build: .
+    command: ["mix phx.server"]
+    environment:
+      MIX_ENV:
+    image: house_tunes:latest
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/opt/app
