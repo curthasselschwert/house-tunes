@@ -1,67 +1,94 @@
 defmodule HouseTunes.MZC do
   use Retry
+  use GenServer
 
-  alias HouseTunes.MZC
+  defmodule ServerState do
+    defstruct current_view: :choose_zone,
+              priv: %{
+                content: [],
+                status: []
+              },
+              zone: nil,
+              source: nil
+  end
 
-  defstruct current_view: :choose_zone,
-            priv: %{
-              content: [],
-              status: []
-            },
-            zone: nil,
-            source: nil
-
+  # Client interface
   def status() do
-    %MZC{}
+    GenServer.call(__MODULE__, :status)
+  end
+
+  def go_back() do
+    GenServer.call(__MODULE__, {:command, "SelMenuBk"})
+  end
+
+  def select_option(option) when option < 7 do
+    GenServer.call(__MODULE__, {:command, "SelLine#{option}"})
+  end
+
+  def page_up() do
+    GenServer.call(__MODULE__, {:command, "SelPageUp"})
+  end
+
+  def page_down() do
+    GenServer.call(__MODULE__, {:command, "SelPageDn"})
+  end
+
+  def power_on() do
+    GenServer.call(__MODULE__, {:command, "SelPower1"})
+  end
+
+  def power_off() do
+    GenServer.call(__MODULE__, {:command, "SelPower0"})
+  end
+
+  def mute_on() do
+    GenServer.call(__MODULE__, {:command, "SelMute1"})
+  end
+
+  def mute_off() do
+    GenServer.call(__MODULE__, {:command, "SelMute0"})
+  end
+
+  def volume_down() do
+    GenServer.call(__MODULE__, {:command, "SelVolDn"})
+  end
+
+  def volume_up() do
+    GenServer.call(__MODULE__, {:command, "SelVolUp"})
+  end
+
+  # Server interface
+
+  def init(_) do
+    status = get_status()
+    {:ok, status}
+  end
+
+  def start_link() do
+    GenServer.start_link(__MODULE__, %ServerState{}, name: __MODULE__)
+  end
+
+  def handle_call(:status, _, _) do
+    status = get_status()
+    {:reply, status, status}
+  end
+
+  def handle_call({:command, command}, _, _) do
+    send_command(command)
+    :timer.sleep(2500)
+    status = get_status()
+    {:reply, status, status}
+  end
+
+  defp get_status() do
+    %ServerState{}
     |> set_status()
     |> set_content()
     |> set_view()
   end
 
-  def go_back() do
-    send_command("SelMenuBk")
-  end
-
-  def select_option(option) when option < 7 do
-    send_command("SelLine#{option}")
-  end
-
-  def page_up() do
-    send_command("SelPageUp")
-  end
-
-  def page_down() do
-    send_command("SelPageDn")
-  end
-
-  def power_on() do
-    send_command("SelPower1")
-  end
-
-  def power_off() do
-    send_command("SelPower0")
-  end
-
-  def mute_on() do
-    send_command("SelMute1")
-  end
-
-  def mute_off() do
-    send_command("SelMute0")
-  end
-
-  def volume_down() do
-    send_command("SelVolDn")
-  end
-
-  def volume_up() do
-    send_command("SelVolUp")
-  end
-
   defp send_command(command) do
     get("http://192.168.1.254/#{command}")
-    :timer.sleep(2000)
-    status()
   end
 
   defp set_status(state) do
@@ -119,7 +146,7 @@ defmodule HouseTunes.MZC do
       MapSet.intersection(content, indicators)
       |> Enum.count()
 
-    length > 0 
+    length > 0
   end
 
   defp get(url) when is_binary(url) do
