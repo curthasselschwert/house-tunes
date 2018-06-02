@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if hash docker-compose 2>/dev/null; then
+  docker-compose up -d $@
+else
+  echo "docker-compose is required to run the Hodi platform." \
+       "Visit https://docs.docker.com/compose/install/ for instructions."
+fi
