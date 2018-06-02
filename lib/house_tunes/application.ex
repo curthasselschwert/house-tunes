@@ -10,7 +10,7 @@ defmodule HouseTunes.Application do
     children = [
       # Start the endpoint when the application starts
       supervisor(HouseTunesWeb.Endpoint, []),
-      supervisor(HouseTunes.MZC, [])
+      worker(HouseTunes.MZC, [], restart: :permanent)
       # Start your own worker by calling: HouseTunes.Worker.start_link(arg1, arg2, arg3)
       # worker(HouseTunes.Worker, [arg1, arg2, arg3]),
     ]

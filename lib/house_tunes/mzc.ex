@@ -12,52 +12,53 @@ defmodule HouseTunes.MZC do
                 status: []
               },
               zone: nil,
-              source: nil
+              source: nil,
+              version: nil
   end
 
   # Client interface
   def status() do
-    GenServer.call(__MODULE__, :status, 10_000)
+    GenServer.call(__MODULE__, :status)
   end
 
-  def go_back() do
-    GenServer.call(__MODULE__, {:command, "SelMenuBk"}, 10_000)
+  def go_back(version) do
+    GenServer.call(__MODULE__, {:command, "SelMenuBk", version}, 10_000)
   end
 
-  def select_option(option) when option < 7 do
-    GenServer.call(__MODULE__, {:command, "SelLine#{option}", 3000}, 10_000)
+  def select_option(option, version) when option < 7 do
+    GenServer.call(__MODULE__, {:command, "SelLine#{option}", version, 3000}, 10_000)
   end
 
-  def page_up() do
-    GenServer.call(__MODULE__, {:command, "SelPageUp"}, 10_000)
+  def page_up(version) do
+    GenServer.call(__MODULE__, {:command, "SelPageUp", version}, 10_000)
   end
 
-  def page_down() do
-    GenServer.call(__MODULE__, {:command, "SelPageDn"}, 10_000)
+  def page_down(version) do
+    GenServer.call(__MODULE__, {:command, "SelPageDn", version}, 10_000)
   end
 
-  def power_on() do
-    GenServer.call(__MODULE__, {:command, "SelPower1"}, 10_000)
+  def power_on(version) do
+    GenServer.call(__MODULE__, {:command, "SelPower1", version}, 10_000)
   end
 
-  def power_off() do
-    GenServer.call(__MODULE__, {:command, "SelPower0"}, 10_000)
+  def power_off(version) do
+    GenServer.call(__MODULE__, {:command, "SelPower0", version}, 10_000)
   end
 
-  def mute_on() do
-    GenServer.call(__MODULE__, {:command, "SelMute1"}, 10_000)
+  def mute_on(version) do
+    GenServer.call(__MODULE__, {:command, "SelMute1", version}, 10_000)
   end
 
-  def mute_off() do
-    GenServer.call(__MODULE__, {:command, "SelMute0"}, 10_000)
+  def mute_off(version) do
+    GenServer.call(__MODULE__, {:command, "SelMute0", version}, 10_000)
   end
 
-  def volume_down() do
-    GenServer.call(__MODULE__, {:command, "SelVolDn"}, 10_000)
+  def volume_down(version) do
+    GenServer.call(__MODULE__, {:command, "SelVolDn", version}, 10_000)
   end
 
-  def volume_up() do
-    GenServer.call(__MODULE__, {:command, "SelVolUp"}, 10_000)
+  def volume_up(version) do
+    GenServer.call(__MODULE__, {:command, "SelVolUp", version}, 10_000)
   end
 
   # Server interface
@@ -75,18 +76,22 @@ defmodule HouseTunes.MZC do
     {:reply, state, state}
   end
 
-  def handle_call({:command, command}, _, _) do
-    send_command(command)
-    :timer.sleep(2500)
-    status = get_status()
-    {:reply, status, status}
+  def handle_call({:command, command, version}, _, state) do
+    case version == state.version do
+      true ->
+        send_command_and_update(command, 2500)
+      false ->
+        {:reply, state, state}
+    end
   end
 
-  def handle_call({:command, command, delay}, _, _) do
-    send_command(command)
-    :timer.sleep(delay)
-    status = get_status()
-    {:reply, status, status}
+  def handle_call({:command, command, version, delay}, _, state) do
+    case version == state.version do
+      true ->
+        send_command_and_update(command, delay)
+      false ->
+        {:reply, state, state}
+    end
   end
 
   defp get_status() do
@@ -94,6 +99,14 @@ defmodule HouseTunes.MZC do
     |> set_status()
     |> set_content()
     |> set_view()
+    |> Map.put(:version, DateTime.to_unix(DateTime.utc_now()))
+  end
+
+  defp send_command_and_update(command, delay) do
+    send_command(command)
+    :timer.sleep(delay)
+    status = get_status()
+    {:reply, status, status}
   end
 
   defp send_command(command) do

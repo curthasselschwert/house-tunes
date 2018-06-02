@@ -23,11 +23,11 @@ import "phoenix_html"
 let loader = document.getElementById("loader");
 let loading = false;
 
-window.addEventListener("submit", function(e) {
-  loader.innerText = "Loading...";
-  loader.classList.add("loading-indicator--active");
-  
-  e.preventDefault();
-  if (!loading) e.target.submit();
-  loading = true;
-});
+//window.addEventListener("submit", function(e) {
+//  loader.innerText = "Loading...";
+//  loader.classList.add("loading-indicator--active");
+//
+//  e.preventDefault();
+//  if (!loading) e.target.submit();
+//  loading = true;
+//});
