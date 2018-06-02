@@ -119,10 +119,11 @@ defmodule HouseTunes.MZC do
       body
       |> Floki.find("table tr td")
       |> Enum.map(&Floki.text/1)
+      |> Enum.map(&String.trim/1)
     power = parse_power_info(body)
 
     status =
-      case Enum.at(status, 2) == "AppleTV\n" do
+      case Enum.at(status, 2) == "AppleTV" do
         true -> List.replace_at(status, 2, "Sonos")
         false -> status
       end
@@ -158,11 +159,11 @@ defmodule HouseTunes.MZC do
     |> Map.put(:zone, zone)
   end
 
-  defp set_view(%{ priv: %{ status: [_, _, status] }} = state) when status == "CHOOSE A ZONE\n" do
+  defp set_view(%{ priv: %{ status: [_, _, status] }} = state) when status == "CHOOSE A ZONE" do
     Map.put(state, :current_view, :choose_zone)
   end
 
-  defp set_view(%{ priv: %{ status: [zone, _, status] }} = state) when status == "SOURCE NOT SELECTED\n" do
+  defp set_view(%{ priv: %{ status: [zone, _, status] }} = state) when status == "SOURCE NOT SELECTED" do
     state
     |> Map.put(:current_view, :choose_source)
     |> Map.put(:zone, zone)

@@ -13,6 +13,12 @@
           <% end %>
         <% end %>
         <h1 class="zone-title">
+          <%= if @status.power_on && @status.playing && not(@status.muted) do %>
+            <img class="volume-indicator" src="/images/volume_on.svg">
+          <% end %>
+          <%= if @status.power_on && @status.playing && @status.muted do %>
+            <img class="volume-indicator" src="/images/volume_off.svg">
+          <% end %>
           <%= @status.zone %>
         </h1>
       <% end %>
@@ -36,13 +42,11 @@
             <%= hidden_input f, :version, value: @status.version %>
             <%= hidden_input f, :action, value: "select_option" %>
             <%= hidden_input f, :value, value: idx %>
-            <button type="submit" class="options-list__option <%= if Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
+            <button type="submit" class="options-list__option <%= if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
               <span>
                 <%= option %>
               </span>
-              <span class="options-list__marker">
-                ‣
-              </span>
+              <img class="options-list__marker" src="/images/marker.svg">
             </button>
           <% end %>
         <% end) %>
@@ -69,58 +73,63 @@
   </div>
 
   <div>
-    <div class="controls">
-      <%= if show_volume_controls?(@status) do %>
-        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-          <%= hidden_input f, :version, value: @status.version %>
-          <%= hidden_input f, :action, value: "volume_up" %>
-          <%= submit class: "action action--volume-up" do %>
-            Volume Up
-          <% end %>
-        <% end %>
-        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-          <%= hidden_input f, :version, value: @status.version %>
-          <%= hidden_input f, :action, value: "volume_down" %>
-          <%= submit class: "action action--volume-down" do %>
-            Volume Down
-          <% end %>
-        <% end %>
-        <%= if @status.muted do %>
+    <%= if show_controls? @status do %>
+      <div class="controls">
+
+        <%= if volume_enabled?(@status) do %>
           <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
             <%= hidden_input f, :version, value: @status.version %>
-            <%= hidden_input f, :action, value: "mute_off" %>
-            <%= submit class: "action action--mute-off" do %>
-              Unmute
+            <%= hidden_input f, :action, value: "volume_up" %>
+            <%= submit class: "action action--volume-up" do %>
+              Volume Up
+            <% end %>
+          <% end %>
+          <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+            <%= hidden_input f, :version, value: @status.version %>
+            <%= hidden_input f, :action, value: "volume_down" %>
+            <%= submit class: "action action--volume-down" do %>
+              Volume Down
+            <% end %>
+          <% end %>
+          <%= if @status.muted do %>
+            <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+              <%= hidden_input f, :version, value: @status.version %>
+              <%= hidden_input f, :action, value: "mute_off" %>
+              <%= submit class: "action action--mute-off" do %>
+                Unmute
+              <% end %>
+            <% end %>
+          <% else %>
+            <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+              <%= hidden_input f, :version, value: @status.version %>
+              <%= hidden_input f, :action, value: "mute_on" %>
+              <%= submit class: "action action--mute_on" do %>
+                Mute
+              <% end %>
             <% end %>
           <% end %>
         <% else %>
-          <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-            <%= hidden_input f, :version, value: @status.version %>
-            <%= hidden_input f, :action, value: "mute_on" %>
-            <%= submit class: "action action--mute_on" do %>
-              Mute
-            <% end %>
-          <% end %>
+          <div class="action action--volume-down action--disabled">
+            Volume Up
+          </div>
+          <div class="action action--volume-down action--disabled">
+            Volume Down
+          </div>
+          <div class="action action--volume-down action--disabled">
+            Mute
+          </div>
         <% end %>
-      <% end %>
-      <%= if @status.power_on do %>
+
         <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
           <%= hidden_input f, :version, value: @status.version %>
           <%= hidden_input f, :action, value: "power_off" %>
-          <%= submit class: "action action--power-off" do %>
+          <%= submit class: action_disabled_class("action action--power-off", not(@status.power_on)), disabled: not(@status.power_on) do %>
             Power Off
           <% end %>
         <% end %>
-      <% else %>
-        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-          <%= hidden_input f, :version, value: @status.version %>
-          <%= hidden_input f, :action, value: "power_on" %>
-          <%= submit class: "action action--power_on" do %>
-            Power On
-          <% end %>
-        <% end %>
-      <% end %>
+      </div>
     </div>
-  </div>
+
+  <% end %>
 
 </div>
