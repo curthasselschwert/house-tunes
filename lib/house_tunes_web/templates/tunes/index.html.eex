@@ -1,6 +1,6 @@
 <div class="house-tunes">
-  <input id="version" type="hidden" value="<%= @status.version %>">
   <div class="view-header">
+    <input id="version" type="hidden" value="<%= @status.version %>">
     <div id="loader" class="loading-indicator">
       Loading...
     </div>
