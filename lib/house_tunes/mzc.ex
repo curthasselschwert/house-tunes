@@ -17,47 +17,47 @@ defmodule HouseTunes.MZC do
 
   # Client interface
   def status() do
-    GenServer.call(__MODULE__, :status)
+    GenServer.call(__MODULE__, :status, 10_000)
   end
 
   def go_back() do
-    GenServer.call(__MODULE__, {:command, "SelMenuBk"})
+    GenServer.call(__MODULE__, {:command, "SelMenuBk"}, 10_000)
   end
 
   def select_option(option) when option < 7 do
-    GenServer.call(__MODULE__, {:command, "SelLine#{option}", 3000})
+    GenServer.call(__MODULE__, {:command, "SelLine#{option}", 3000}, 10_000)
   end
 
   def page_up() do
-    GenServer.call(__MODULE__, {:command, "SelPageUp"})
+    GenServer.call(__MODULE__, {:command, "SelPageUp"}, 10_000)
   end
 
   def page_down() do
-    GenServer.call(__MODULE__, {:command, "SelPageDn"})
+    GenServer.call(__MODULE__, {:command, "SelPageDn"}, 10_000)
   end
 
   def power_on() do
-    GenServer.call(__MODULE__, {:command, "SelPower1"})
+    GenServer.call(__MODULE__, {:command, "SelPower1"}, 10_000)
   end
 
   def power_off() do
-    GenServer.call(__MODULE__, {:command, "SelPower0"})
+    GenServer.call(__MODULE__, {:command, "SelPower0"}, 10_000)
   end
 
   def mute_on() do
-    GenServer.call(__MODULE__, {:command, "SelMute1"})
+    GenServer.call(__MODULE__, {:command, "SelMute1"}, 10_000)
   end
 
   def mute_off() do
-    GenServer.call(__MODULE__, {:command, "SelMute0"})
+    GenServer.call(__MODULE__, {:command, "SelMute0"}, 10_000)
   end
 
   def volume_down() do
-    GenServer.call(__MODULE__, {:command, "SelVolDn"})
+    GenServer.call(__MODULE__, {:command, "SelVolDn"}, 10_000)
   end
 
   def volume_up() do
-    GenServer.call(__MODULE__, {:command, "SelVolUp"})
+    GenServer.call(__MODULE__, {:command, "SelVolUp"}, 10_000)
   end
 
   # Server interface
@@ -97,11 +97,11 @@ defmodule HouseTunes.MZC do
   end
 
   defp send_command(command) do
-    get("http://192.168.1.254/#{command}")
+    get(command)
   end
 
   defp set_status(state) do
-    body = get("http://192.168.1.254/frame0.html")
+    body = get("frame0.html")
     status =
       body
       |> Floki.find("table tr td")
@@ -121,7 +121,7 @@ defmodule HouseTunes.MZC do
 
   defp set_content(state) do
     content =
-      get("http://192.168.1.254/frame1.html")
+      get("frame1.html")
       |> Floki.find("table tr td")
       |> Enum.map(&Floki.text/1)
       |> Enum.map(&String.trim/1)
@@ -184,9 +184,9 @@ defmodule HouseTunes.MZC do
     length > 0
   end
 
-  defp get(url) when is_binary(url) do
+  defp get(path) when is_binary(path) do
     retry with: exp_backoff() |> randomize() |> expiry(5_000) do
-      HTTPoison.get(url)
+      HTTPoison.get("http://192.168.1.254/#{path}")
     end
     |> Tuple.to_list()
     |> Enum.at(1)
