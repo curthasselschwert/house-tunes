@@ -1,1 +1,152 @@
-/* This file is for your main application css. */
+html {
+  height: 100%;
+}
+
+body {
+  background: #EB3349;
+  background-image: -webkit-linear-gradient(to top, #EB3349, #F45C43);
+  background-image: linear-gradient(to top, #EB3349, #F45C43);
+  color: hsla(0, 0%, 100%, 0.99);
+  font-family: 'Montserrat', sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.house-tunes {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.header {
+}
+
+.view-header {}
+
+.zone-info {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 375px;
+  min-height: 40px;
+  padding: 0 24px;
+}
+
+.go-back {
+  background: none;
+  border: none;
+  color: hsla(0, 0%, 100%, 0.99);
+  font-size: 32px;
+  margin: 0;
+  outline: 0;
+  padding: 0;
+  text-shadow: 0 1px 3px hsl(353, 61%, 32%);
+}
+
+.zone-title {
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 40px;
+  margin: 0;
+  padding: 0;
+  text-shadow: 0 1px 0 hsl(353, 61%, 34%);
+}
+
+.view-title {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 24px;
+  margin: 0 auto;
+  max-width: 375px;
+  padding: 0 24px 36px;
+  text-align: right;
+  text-shadow: 0 1px 0 hsl(353, 61%, 34%);
+}
+
+.now-playing,
+.options-list,
+.pagination,
+.controls {
+  margin: 0 auto;
+  max-width: 375px;
+  overflow-y: auto;
+  padding: 0 24px;
+}
+
+.options-list {
+  min-height: 220px;
+}
+
+.now-playing {
+  text-align: center;
+}
+
+.options-list__option {
+  background: none;
+  border: none;
+  color: hsla(0, 0%, 100%, 0.99);
+  cursor: pointer;
+  display: flex;
+  font-size: 20px;
+  justify-content: space-between;
+  line-height: 32px;
+  outline: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.options-list__marker {
+  color: hsla(0, 0%, 100%, .7); 
+  font-size: 40px;
+}
+
+.pagination {
+  display: grid;
+  grid-gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  margin: 24px 0 0;
+}
+
+.controls {
+  display: grid;
+  grid-gap: 8px;
+  padding-bottom: 32px;
+}
+
+.action {
+  background: hsla(0, 0%, 100%, .2); 
+  border: none;
+  border-radius: 2px;
+  color: hsla(0, 0%, 100%, 0.99);
+  font-size: 15px;
+  line-height: 36px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+}
+
+.action--page-up,
+.action--page-down {
+  color: hsla(0, 0%, 100%, .9); 
+  box-shadow: 0 2px 3px hsla(353, 82%, 46%, 1.0);
+  font-size: 22px;
+}
+
+.loading-indicator {
+  box-sizing: border-box;
+  font-size: 16px;
+  height: 32px;
+  line-height: 32px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.loading-indicator--active {
+  background: hsla(0, 0%, 0%, 0.4);
+}

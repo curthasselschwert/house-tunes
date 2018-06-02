@@ -19,3 +19,15 @@ import "phoenix_html"
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
+
+let loader = document.getElementById("loader");
+let loading = false;
+
+window.addEventListener("submit", function(e) {
+  loader.innerText = "Loading...";
+  loader.classList.add("loading-indicator--active");
+  
+  e.preventDefault();
+  if (!loading) e.target.submit();
+  loading = true;
+});

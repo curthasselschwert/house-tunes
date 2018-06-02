@@ -1,0 +1,116 @@
+<div class="house-tunes">
+
+  <div class="view-header">
+    <div id="loader" class="loading-indicator">
+    </div>
+    <div class="zone-info">
+      <%= if @status.zone do %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "go_back" %>
+          <%= submit class: "go-back" do %>
+            ←
+          <% end %>
+        <% end %>
+        <h1 class="zone-title">
+          <%= @status.zone %>
+        </h1>
+      <% end %>
+    </div>
+    <h3 class="view-title">
+      <%= view_title(@status) %>
+    </h3>
+  </div>
+
+  <div>
+    <%= if @status.current_view == :now_playing do %>
+      <div class="now-playing">
+        <%= for line <- @status.priv.content do %>
+          <div><%= line %></div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="options-list">
+        <%= @status.priv.content |> Enum.with_index |> Enum.map(fn {option, idx} -> %>
+          <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+            <%= hidden_input f, :action, value: "select_option" %>
+            <%= hidden_input f, :value, value: idx %>
+            <%= submit class: "options-list__option" do %>
+              <span>
+                <%= option %>
+              </span>
+              <span class="options-list__marker">
+                ‣
+              </span>
+            <% end %>
+          <% end %>
+        <% end) %>
+      </div>
+    <% end %>
+    <%= if show_pagination?(@status) do %>
+      <div class="pagination">
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "page_up" %>
+          <%= submit class: "action action--page-up" do %>
+            ▲
+          <% end %>
+        <% end %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "page_down" %>
+          <%= submit class: "action action--page-down" do %>
+            ▼
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div>
+    <div class="controls">
+      <%= if show_volume_controls?(@status) do %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "volume_up" %>
+          <%= submit class: "action action--volume-up" do %>
+            Volume Up
+          <% end %>
+        <% end %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "volume_down" %>
+          <%= submit class: "action action--volume-down" do %>
+            Volume Down
+          <% end %>
+        <% end %>
+        <%= if @status.muted do %>
+          <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+            <%= hidden_input f, :action, value: "mute_off" %>
+            <%= submit class: "action action--mute-off" do %>
+              Unmute
+            <% end %>
+          <% end %>
+        <% else %>
+          <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+            <%= hidden_input f, :action, value: "mute_on" %>
+            <%= submit class: "action action--mute_on" do %>
+              Mute
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+      <%= if @status.playing do %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "power_off" %>
+          <%= submit class: "action action--power-off" do %>
+            Power Off
+          <% end %>
+        <% end %>
+      <% else %>
+        <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
+          <%= hidden_input f, :action, value: "power_on" %>
+          <%= submit class: "action action--power_on" do %>
+            Power On
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+</div>

@@ -4,6 +4,9 @@ defmodule HouseTunes.MZC do
 
   defmodule ServerState do
     defstruct current_view: :choose_zone,
+              muted: false,
+              playing: false,
+              power_on: false,
               priv: %{
                 content: [],
                 status: []
@@ -22,7 +25,7 @@ defmodule HouseTunes.MZC do
   end
 
   def select_option(option) when option < 7 do
-    GenServer.call(__MODULE__, {:command, "SelLine#{option}"})
+    GenServer.call(__MODULE__, {:command, "SelLine#{option}", 3000})
   end
 
   def page_up() do
@@ -68,14 +71,20 @@ defmodule HouseTunes.MZC do
     GenServer.start_link(__MODULE__, %ServerState{}, name: __MODULE__)
   end
 
-  def handle_call(:status, _, _) do
-    status = get_status()
-    {:reply, status, status}
+  def handle_call(:status, _, state) do
+    {:reply, state, state}
   end
 
   def handle_call({:command, command}, _, _) do
     send_command(command)
     :timer.sleep(2500)
+    status = get_status()
+    {:reply, status, status}
+  end
+
+  def handle_call({:command, command, delay}, _, _) do
+    send_command(command)
+    :timer.sleep(delay)
     status = get_status()
     {:reply, status, status}
   end
@@ -92,12 +101,22 @@ defmodule HouseTunes.MZC do
   end
 
   defp set_status(state) do
+    body = get("http://192.168.1.254/frame0.html")
     status =
-      get("http://192.168.1.254/frame0.html")
+      body
       |> Floki.find("table tr td")
       |> Enum.map(&Floki.text/1)
+    power = parse_power_info(body)
 
-    Kernel.put_in(state.priv.status, status)
+    Map.merge(state, %{
+      priv: %{
+        status: status,
+        content: state.priv.content
+      },
+      power_on: power.power1,
+      playing: power.play1,
+      muted: power.mute1
+    })
   end
 
   defp set_content(state) do
@@ -105,6 +124,8 @@ defmodule HouseTunes.MZC do
       get("http://192.168.1.254/frame1.html")
       |> Floki.find("table tr td")
       |> Enum.map(&Floki.text/1)
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(fn line -> String.length(line) == 0 end)
 
     Kernel.put_in(state.priv.content, content)
   end
@@ -136,6 +157,20 @@ defmodule HouseTunes.MZC do
         |> Map.put(:zone, zone)
         |> Map.put(:source, source)
       end
+  end
+
+  defp parse_power_info(body) when is_binary(body) do
+    body
+    |> Floki.find("script")
+    |> List.first()
+    |> Tuple.to_list()
+    |> Enum.at(2)
+    |> List.first()
+    |> String.split(";")
+    |> Enum.map(&String.replace(&1, "var ", ""))
+    |> Enum.map(&String.split(&1, "="))
+    |> Enum.map(fn [k, v] -> {String.to_atom(k), String.to_integer(v) == 1} end)
+    |> Map.new()
   end
 
   defp is_source_list?(content) do
