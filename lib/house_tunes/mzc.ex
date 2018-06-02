@@ -149,6 +149,9 @@ defmodule HouseTunes.MZC do
       |> Enum.map(fn line ->
         if line == "AppleTV", do: "Sonos", else: line
       end)
+      |> Enum.map(fn line ->
+        if line == "CH", do: "", else: line
+      end)
 
     Kernel.put_in(state.priv.content, content)
   end

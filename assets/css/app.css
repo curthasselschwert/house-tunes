@@ -79,7 +79,7 @@ body {
 }
 
 .options-list {
-  min-height: 220px;
+  min-height: 180px;
   padding: 0 12px;
 }
 
@@ -125,7 +125,8 @@ body {
   display: grid;
   grid-gap: 16px;
   grid-template-columns: 1fr 1fr;
-  margin: 24px 0 0;
+  margin: 24px auto 0;
+  max-width: 375px;
 }
 
 .controls {
@@ -165,15 +166,20 @@ body {
 }
 
 .loading-indicator {
+  align-items: center;
   box-sizing: border-box;
-  font-size: 16px;
-  height: 32px;
-  line-height: 32px;
-  margin: 0;
-  padding: 0;
-  text-align: center;
+  color: hsla(0, 0%, 100%, .8);
+  display: flex;
+  font-size: 13px;
+  line-height: 24px;
+  margin: 0 auto 8px;
+  max-width: 375px;
+  opacity: 0;
+  padding: 8px 24px 2px;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .loading-indicator--active {
-  background: hsla(0, 0%, 0%, 0.4);
+  opacity: 1;
 }

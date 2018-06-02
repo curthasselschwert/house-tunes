@@ -21,13 +21,7 @@ import "phoenix_html"
 // import socket from "./socket"
 
 let loader = document.getElementById("loader");
-let loading = false;
 
-//window.addEventListener("submit", function(e) {
-//  loader.innerText = "Loading...";
-//  loader.classList.add("loading-indicator--active");
-//
-//  e.preventDefault();
-//  if (!loading) e.target.submit();
-//  loading = true;
-//});
+window.loading = function() {
+  loader.classList.add("loading-indicator--active");
+}

@@ -2,13 +2,14 @@
 
   <div class="view-header">
     <div id="loader" class="loading-indicator">
+      Loading...
     </div>
     <div class="zone-info">
       <%= if @status.zone do %>
         <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
           <%= hidden_input f, :version, value: @status.version %>
           <%= hidden_input f, :action, value: "go_back" %>
-          <%= submit class: "go-back" do %>
+          <%= submit class: "go-back", onclick: "loading()" do %>
             ←
           <% end %>
         <% end %>
@@ -42,7 +43,7 @@
             <%= hidden_input f, :version, value: @status.version %>
             <%= hidden_input f, :action, value: "select_option" %>
             <%= hidden_input f, :value, value: idx %>
-            <button type="submit" class="options-list__option <%= if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
+            <button type="submit" onclick="loading()" class="options-list__option <%= if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
               <span>
                 <%= option %>
               </span>
@@ -57,14 +58,14 @@
         <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
           <%= hidden_input f, :version, value: @status.version %>
           <%= hidden_input f, :action, value: "page_up" %>
-          <%= submit class: "action action--page-up" do %>
+          <%= submit class: "action action--page-up", onclick: "loading()" do %>
             ▲
           <% end %>
         <% end %>
         <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
           <%= hidden_input f, :version, value: @status.version %>
           <%= hidden_input f, :action, value: "page_down" %>
-          <%= submit class: "action action--page-down" do %>
+          <%= submit class: "action action--page-down", onclick: "loading()" do %>
             ▼
           <% end %>
         <% end %>
@@ -80,14 +81,14 @@
           <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
             <%= hidden_input f, :version, value: @status.version %>
             <%= hidden_input f, :action, value: "volume_up" %>
-            <%= submit class: "action action--volume-up" do %>
+            <%= submit class: "action action--volume-up", onclick: "loading()" do %>
               Volume Up
             <% end %>
           <% end %>
           <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
             <%= hidden_input f, :version, value: @status.version %>
             <%= hidden_input f, :action, value: "volume_down" %>
-            <%= submit class: "action action--volume-down" do %>
+            <%= submit class: "action action--volume-down", onclick: "loading()" do %>
               Volume Down
             <% end %>
           <% end %>
@@ -95,7 +96,7 @@
             <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
               <%= hidden_input f, :version, value: @status.version %>
               <%= hidden_input f, :action, value: "mute_off" %>
-              <%= submit class: "action action--mute-off" do %>
+              <%= submit class: "action action--mute-off", onclick: "loading()" do %>
                 Unmute
               <% end %>
             <% end %>
@@ -103,7 +104,7 @@
             <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
               <%= hidden_input f, :version, value: @status.version %>
               <%= hidden_input f, :action, value: "mute_on" %>
-              <%= submit class: "action action--mute_on" do %>
+              <%= submit class: "action action--mute_on", onclick: "loading()" do %>
                 Mute
               <% end %>
             <% end %>
