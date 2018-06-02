@@ -61,15 +61,31 @@ defmodule HouseTunes.MZC do
     GenServer.call(__MODULE__, {:command, "SelVolUp", version}, 10_000)
   end
 
+  def update_status() do
+    Process.send_after(__MODULE__, :update_status, 5000)
+  end
+
   # Server interface
 
   def init(_) do
     status = get_status()
+    update_status()
     {:ok, status}
   end
 
   def start_link() do
     GenServer.start_link(__MODULE__, %ServerState{}, name: __MODULE__)
+  end
+
+  def handle_info(:update_status, state) do
+    status = get_status()
+    update_status()
+    case Map.merge(state, %{ version: nil }) == Map.merge(status, %{ version: nil }) do
+      true ->
+        {:noreply, state}
+      false ->
+        {:noreply, status}
+    end
   end
 
   def handle_call(:status, _, state) do
@@ -173,7 +189,6 @@ defmodule HouseTunes.MZC do
   end
 
   defp set_view(%{ priv: %{ status: [zone, _, source], content: content } } = state) do
-    IO.inspect [content, is_source_list?(content)]
     cond do
       not(is_source_list?(content)) and source == "Sonos" ->
         Map.put(state, :current_view, :now_playing)
