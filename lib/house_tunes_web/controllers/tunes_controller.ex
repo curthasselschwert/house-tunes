@@ -4,7 +4,6 @@ defmodule HouseTunesWeb.TunesController do
 
   def index(conn, _params) do
     status = MZC.status()
-    IO.inspect status
     render conn, "index.html", status: status
   end
 
@@ -12,7 +11,6 @@ defmodule HouseTunesWeb.TunesController do
     status =
       String.to_integer(value)
       |> MZC.select_option(String.to_integer(version))
-    IO.inspect status
     redirect conn, to: tunes_path(conn, :index)
   end
 
@@ -24,7 +22,6 @@ defmodule HouseTunesWeb.TunesController do
 
   def version(conn, _) do
     status = MZC.status()
-    IO.inspect status
     json(conn, %{ version: status.version })
   end
 end
