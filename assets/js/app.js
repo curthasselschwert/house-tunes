@@ -21,7 +21,39 @@ import "phoenix_html"
 // import socket from "./socket"
 
 let loader = document.getElementById("loader");
+let version = document.getElementById("version").value;
+let start = null;
 
 window.loading = function() {
   loader.classList.add("loading-indicator--active");
 }
+
+function checkForUpdate(timestamp) {
+  if (!start) start = timestamp;
+
+  if (timestamp - start > 6000) {
+    start = timestamp
+    fetch("/version")
+      .then(function(res) {
+        return res.json();
+      })
+      .then(function(res) {
+        if (res.version != version) {
+          loading();
+          window.location.reload(true);
+        }
+        else {
+          window.requestAnimationFrame(checkForUpdate);
+        }
+      })
+      .catch(function(e) {
+        console.error(e);
+        window.requestAnimationFrame(checkForUpdate);
+      });
+  }
+  else {
+    window.requestAnimationFrame(checkForUpdate);
+  }
+}
+
+window.requestAnimationFrame(checkForUpdate);

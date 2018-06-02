@@ -2,15 +2,11 @@ defmodule HouseTunesWeb.Router do
   use HouseTunesWeb, :router
 
   pipeline :browser do
-    plug :accepts, ["html"]
+    plug :accepts, ["html", "json"]
     plug :fetch_session
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-  end
-
-  pipeline :api do
-    plug :accepts, ["json"]
   end
 
   scope "/", HouseTunesWeb do
@@ -18,6 +14,7 @@ defmodule HouseTunesWeb.Router do
 
     get "/", TunesController, :index
     post "/", TunesController, :update
+    get "/version", TunesController, :version
   end
 
   # Other scopes may use custom stacks.

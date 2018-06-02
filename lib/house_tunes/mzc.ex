@@ -217,6 +217,8 @@ defmodule HouseTunes.MZC do
       end
   end
 
+  defp set_view(state), do: state
+
   defp parse_power_info(body) when is_binary(body) do
     body
     |> Floki.find("script")

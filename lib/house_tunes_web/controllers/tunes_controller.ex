@@ -21,4 +21,10 @@ defmodule HouseTunesWeb.TunesController do
     IO.inspect status
     redirect conn, to: tunes_path(conn, :index)
   end
+
+  def version(conn, _) do
+    status = MZC.status()
+    IO.inspect status
+    json(conn, %{ version: status.version })
+  end
 end
