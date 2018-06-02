@@ -3,10 +3,10 @@ defmodule HouseTunesWeb.TunesView do
 
   def view_title(status) do
     case status.current_view do
-      :choose_zone -> "Choose Zone"
-      :choose_source -> "Choose Source"
+      :choose_zone -> ""
+      :choose_source -> status.source
       :source_options -> status.source
-      :now_playing -> "Now Playing"
+      :now_playing -> status.source
     end
   end
 

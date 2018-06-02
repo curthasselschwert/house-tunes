@@ -121,6 +121,12 @@ defmodule HouseTunes.MZC do
       |> Enum.map(&Floki.text/1)
     power = parse_power_info(body)
 
+    status =
+      case Enum.at(status, 2) == "AppleTV\n" do
+        true -> List.replace_at(status, 2, "Sonos")
+        false -> status
+      end
+
     Map.merge(state, %{
       priv: %{
         status: status,
@@ -139,6 +145,9 @@ defmodule HouseTunes.MZC do
       |> Enum.map(&Floki.text/1)
       |> Enum.map(&String.trim/1)
       |> Enum.reject(fn line -> String.length(line) == 0 end)
+      |> Enum.map(fn line ->
+        if line == "AppleTV", do: "Sonos", else: line
+      end)
 
     Kernel.put_in(state.priv.content, content)
   end
@@ -160,12 +169,29 @@ defmodule HouseTunes.MZC do
   end
 
   defp set_view(%{ priv: %{ status: [zone, _, source], content: content } } = state) do
-    case is_source_list?(content) do
-      true ->
+    IO.inspect [content, is_source_list?(content)]
+    cond do
+      not(is_source_list?(content)) and source == "Sonos" ->
+        Map.put(state, :current_view, :now_playing)
+        |> Map.put(:zone, zone)
+        |> Map.put(:source, source)
+        |> Map.merge(%{
+          priv: %{
+            status: state.priv.status,
+            content: [
+              "",
+              "",
+              "Use the Sonos App to",
+              "control the music",
+              ""
+            ]
+          }
+        })
+      is_source_list?(content) ->
         Map.put(state, :current_view, :choose_source)
         |> Map.put(:zone, zone)
         |> Map.put(:source, source)
-      false ->
+      true ->
         Map.put(state, :current_view, :source_options)
         |> Map.put(:zone, zone)
         |> Map.put(:source, source)
@@ -188,7 +214,7 @@ defmodule HouseTunes.MZC do
 
   defp is_source_list?(content) do
     content = MapSet.new(content)
-    indicators = MapSet.new(["AppleTV\n", "Living Rm\n"])
+    indicators = MapSet.new(["Bed Sat", "Living Rm"])
 
     length =
       MapSet.intersection(content, indicators)

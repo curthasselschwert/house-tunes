@@ -36,14 +36,14 @@
             <%= hidden_input f, :version, value: @status.version %>
             <%= hidden_input f, :action, value: "select_option" %>
             <%= hidden_input f, :value, value: idx %>
-            <%= submit class: "options-list__option" do %>
+            <button type="submit" class="options-list__option <%= if Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
               <span>
                 <%= option %>
               </span>
               <span class="options-list__marker">
                 ‣
               </span>
-            <% end %>
+            </button>
           <% end %>
         <% end) %>
       </div>
