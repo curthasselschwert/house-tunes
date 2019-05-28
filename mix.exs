@@ -32,14 +32,16 @@ defmodule HouseTunes.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:cowboy, "~> 1.0"},
       {:floki, "~> 0.20.2"},
       {:gettext, "~> 0.11"},
       {:httpoison, "~> 1.1.1"},
-      {:phoenix, "~> 1.3.2"},
+      {:jason, "~> 1.0"},
+      {:phoenix, "~> 1.4.6"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_html, "~> 2.10"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:plug_cowboy, "~> 2.0"},
+      {:plug, "~> 1.7"},
       {:retry, "~> 0.11.2"}
     ]
   end

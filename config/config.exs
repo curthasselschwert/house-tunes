@@ -5,6 +5,9 @@
 # is restricted to this project.
 use Mix.Config
 
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
+
 # Configures the endpoint
 config :house_tunes, HouseTunesWeb.Endpoint,
   url: [host: "localhost"],
