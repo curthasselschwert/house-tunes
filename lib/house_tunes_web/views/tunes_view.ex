@@ -28,7 +28,7 @@ defmodule HouseTunesWeb.TunesView do
   end
 
   def volume_enabled?(status) do
-    status.power_on && status.playing
+    status.power_on && (status.playing || status.source == "Sonos")
   end
 
   defp select_title(status) do
