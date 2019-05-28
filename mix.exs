@@ -37,6 +37,7 @@ defmodule HouseTunes.Mixfile do
       {:httpoison, "~> 1.1.1"},
       {:jason, "~> 1.0"},
       {:phoenix, "~> 1.4.6"},
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_html, "~> 2.10"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},

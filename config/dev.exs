@@ -44,7 +44,8 @@ config :house_tunes, HouseTunesWeb.Endpoint,
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/house_tunes_web/views/.*(ex)$},
-      ~r{lib/house_tunes_web/templates/.*(eex)$}
+      ~r{lib/house_tunes_web/templates/.*(eex)$},
+      ~r{lib/my_app_web/live/.*(ex)$}
     ]
   ]
 

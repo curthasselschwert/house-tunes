@@ -10,6 +10,9 @@ config :phoenix, :json_library, Jason
 
 # Configures the endpoint
 config :house_tunes, HouseTunesWeb.Endpoint,
+  live_view: [
+    signing_salt: "s/OOfdwXrmaen+8/8ohlD+HlHzy5rwE0"
+  ],
   url: [host: "localhost"],
   secret_key_base: "rSM3NxXH8PTnckAYEXXiXrZk+pScSKDuFrsPtEiTKzwXgTisaPSP+Tz6OeswFAhx",
   render_errors: [view: HouseTunesWeb.ErrorView, accepts: ~w(html json)],

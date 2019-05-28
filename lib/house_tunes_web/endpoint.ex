@@ -4,6 +4,8 @@ defmodule HouseTunesWeb.Endpoint do
   socket "/socket", HouseTunesWeb.UserSocket, 
     websocket: true
 
+  socket "/live", Phoenix.LiveView.Socket
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
