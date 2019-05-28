@@ -40,7 +40,7 @@ defmodule HouseTunes.Mixfile do
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_html, "~> 2.10"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
-      {:retry, "~> 0.8.2"}
+      {:retry, "~> 0.11.2"}
     ]
   end
 end
