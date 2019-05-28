@@ -24,9 +24,3 @@ liveSocket.connect()
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
-
-let loader = document.getElementById("loader");
-
-window.loading = function() {
-  loader.classList.add("loading-indicator--active");
-}

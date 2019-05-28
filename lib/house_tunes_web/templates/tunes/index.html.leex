@@ -1,0 +1,114 @@
+<div class="house-tunes">
+  <%= if @status.current_view == :controller_down do %>
+    <div class="controller-down">
+      House tunes cannot connect to the controller. Please unplug the
+      controller in the closet and plug it back in.
+    </div>
+  <% else %>
+    <%= if @status.current_view == :starting do %>
+      <div class="app-starting">
+        Loading...
+      </div>
+    <% else %>
+        <div class="view-header">
+          <div id="loader" class="loading-indicator">
+            <%= if @status.loading, do: "Loading...", else: "" %>
+          </div>
+          <div class="zone-info">
+            <%= if @status.zone do %>
+              <%= submit class: "go-back", phx_click: "go_back" do %>
+                ←
+              <% end %>
+              <h1 class="zone-title">
+                <%= if @status.power_on && (@status.playing || @status.source == "Sonos") && not(@status.muted) do %>
+                  <img class="volume-indicator" src="/images/volume_on.svg">
+                <% end %>
+                <%= if @status.power_on && (@status.playing || @status.source == "Sonos") && @status.muted do %>
+                  <img class="volume-indicator" src="/images/volume_off.svg">
+                <% end %>
+                <%= @status.zone %>
+              </h1>
+            <% end %>
+          </div>
+          <h3 class="view-title">
+            <%= view_title(@status) %>
+          </h3>
+        </div>
+
+        <div>
+          <%= if @status.current_view == :now_playing do %>
+            <div class="now-playing">
+              <%= for line <- @status.content do %>
+                <div><%= line %></div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="options-list">
+              <%= for {option, idx} <- @content do %>
+                <%= submit type: "submit", class: "options-list__option #{if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: ""}", phx_click: "select_option", phx_value: idx do %>
+                  <span>
+                    <%= option %>
+                  </span>
+                  <img class="options-list__marker" src="/images/marker.svg">
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+          <%= if show_pagination?(@status) do %>
+            <div class="pagination">
+              <%= submit class: "action action--page-up", phx_click: "page_up" do %>
+                ▲
+              <% end %>
+              <%= submit class: "action action--page-down", phx_click: "page_down" do %>
+                ▼
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div>
+          <%= if show_controls? @status do %>
+            <div class="controls">
+
+              <%= if volume_enabled?(@status) and not(@status.muted) do %>
+                <%= submit class: "action action--volume-up", phx_click: "volume_up" do %>
+                  Volume Up
+                <% end %>
+                <%= submit class: "action action--volume-down", phx_click: "volume_down" do %>
+                  Volume Down
+                <% end %>
+              <% else %>
+                <div class="action action--volume-down action--disabled">
+                  Volume Up
+                </div>
+                <div class="action action--volume-down action--disabled">
+                  Volume Down
+                </div>
+              <% end %>
+
+              <%= if volume_enabled?(@status) do %>
+                <%= if @status.muted do %>
+                  <%= submit class: "action action--mute-off", phx_click: "unmute" do %>
+                    Unmute
+                  <% end %>
+                <% else %>
+                  <%= submit class: "action action--mute_on", phx_click: "mute" do %>
+                    Mute
+                  <% end %>
+                <% end %>
+              <% else %>
+                <div class="action action--volume-down action--disabled">
+                  Mute
+                </div>
+              <% end %>
+
+              <%= submit class: action_disabled_class("action action--power-off", not(@status.power_on)), disabled: not(@status.power_on), phx_click: "power_off" do %>
+                Power Off
+              <% end %>
+            </div>
+
+          <% end %>
+        </div>
+    <% end %>
+  <% end %>
+</div>

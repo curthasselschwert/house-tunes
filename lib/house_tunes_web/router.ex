@@ -13,9 +13,7 @@ defmodule HouseTunesWeb.Router do
   scope "/", HouseTunesWeb do
     pipe_through :browser # Use the default browser stack
 
-    get "/", TunesController, :index
-    post "/", TunesController, :update
-    get "/version", TunesController, :version
+    live "/", Live
   end
 
   # Other scopes may use custom stacks.

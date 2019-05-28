@@ -5,6 +5,7 @@ defmodule HouseTunes.MZC do
   require Logger
 
   @refresh 3000
+  @topic "status"
 
   defmodule ServerState do
     defstruct content: [],
@@ -75,6 +76,7 @@ defmodule HouseTunes.MZC do
 
   def handle_info(:timeout, state) do
     Task.start(fn -> get_status() end)
+    HouseTunesWeb.Endpoint.broadcast(@topic, "status", state)
     {:noreply, state, @refresh}
   end
 
@@ -83,6 +85,7 @@ defmodule HouseTunes.MZC do
   end
 
   def handle_cast({:status_updated, new_state}, _state) do
+    HouseTunesWeb.Endpoint.broadcast(@topic, "status", new_state)
     {:noreply, new_state, @refresh}
   end
 
@@ -91,13 +94,15 @@ defmodule HouseTunes.MZC do
   end
 
   def handle_cast({:command, command}, state) do
+    new_state = %ServerState{state | loading: true}
     Task.start(fn -> get(command) end)
-    {:noreply, %ServerState{state | loading: true}, @refresh}
+    HouseTunesWeb.Endpoint.broadcast(@topic, "status", new_state)
+    {:noreply, new_state, @refresh}
   end
 
   defp get_controller_html() do
-    with {:ok, %{body: status}} <- get_html("frame0.html"),
-         {:ok, %{body: content}} <- get_html("frame1.html") do
+    with {:ok, %{body: status}} <- get("frame0.html"),
+         {:ok, %{body: content}} <- get("frame1.html") do
            {:ok, status, content}
     else
       _ -> {:error, :server_down}
@@ -234,16 +239,6 @@ defmodule HouseTunes.MZC do
   end
 
   defp get(path) when is_binary(path) do
-    retry with: exp_backoff() |> randomize() |> expiry(5_000) do
-      HTTPoison.get("http://192.168.1.254/#{path}")
-    after
-      {_, response} -> response.body
-    else
-      _ -> ""
-    end
-  end
-
-  defp get_html(path) when is_binary(path) do
     retry with: exp_backoff() |> randomize() |> expiry(5_000) do
       HTTPoison.get("http://192.168.1.254/#{path}")
     after
