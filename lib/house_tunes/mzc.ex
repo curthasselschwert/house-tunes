@@ -2,18 +2,19 @@ defmodule HouseTunes.MZC do
   use Retry
   use GenServer
 
+  require Logger
+
   defmodule ServerState do
-    defstruct current_view: :choose_zone,
+    defstruct content: [],
+              current_view: :starting,
+              loading: false,
               muted: false,
               playing: false,
               power_on: false,
-              priv: %{
-                content: [],
-                status: []
-              },
-              zone: nil,
               source: nil,
-              version: nil
+              status: [],
+              version: nil,
+              zone: nil
   end
 
   # Client interface
@@ -110,12 +111,25 @@ defmodule HouseTunes.MZC do
     end
   end
 
+  defp get_controller_html() do
+    with {:ok, %{body: status}} <- get_html("frame0.html"),
+         {:ok, %{body: content}} <- get_html("frame1.html") do
+           {:ok, status, content}
+    else
+      _ -> {:error, :server_down}
+    end
+  end
+
   defp get_status() do
-    %ServerState{}
-    |> set_status()
-    |> set_content()
-    |> set_view()
-    |> Map.put(:version, DateTime.to_unix(DateTime.utc_now()))
+    with {:ok, status, content} <- get_controller_html() do
+      %ServerState{}
+      |> set_status(status)
+      |> set_content(content)
+      |> set_view()
+      |> Map.put(:version, DateTime.to_unix(DateTime.utc_now()))
+    else
+      _ -> %ServerState{current_view: :controller_down}
+    end
   end
 
   defp send_command_and_update(command, delay) do
@@ -129,82 +143,61 @@ defmodule HouseTunes.MZC do
     get(command)
   end
 
-  defp set_status(state) do
-    body = get("frame0.html")
-    status =
-      body
-      |> Floki.find("table tr td")
-      |> Enum.map(&Floki.text/1)
-      |> Enum.map(&String.trim/1)
-    power = parse_power_info(body)
-
-    status =
-      case Enum.at(status, 2) == "AppleTV" do
-        true -> List.replace_at(status, 2, "Sonos")
-        false -> status
-      end
+  defp set_status(state, status_html) do
+    status = parse_status_info(status_html)
+    power = parse_power_info(status_html)
 
     Map.merge(state, %{
-      priv: %{
-        status: status,
-        content: state.priv.content
-      },
-      power_on: power.power1,
-      playing: power.play1,
-      muted: power.mute1
+      muted: power.mute,
+      power_on: power.power,
+      playing: power.play,
+      status: status
     })
   end
 
-  defp set_content(state) do
+  defp set_content(state, content_html) do
     content =
-      get("frame1.html")
+      content_html
       |> Floki.find("table tr td")
       |> Enum.map(&Floki.text/1)
       |> Enum.map(&String.trim/1)
       |> Enum.reject(fn line -> String.length(line) == 0 end)
-      |> Enum.map(fn line ->
-        if line == "AppleTV", do: "Sonos", else: line
-      end)
-      |> Enum.map(fn line ->
-        if line == "CH", do: "", else: line
-      end)
+      |> Enum.map(&String.replace(&1, ~r/AppleTV/, "Sonos"))
+      |> Enum.map(&String.replace(&1, ~r/^CH$/, ""))
 
-    Kernel.put_in(state.priv.content, content)
+    Map.put(state, :content, content)
   end
 
-  defp set_view(%{ priv: %{ status: [zone, _, status] }} = state) when status == "NOW LISTENING" do
+  defp set_view(%{status: [zone, _, "NOW LISTENING"]} = state) do
     state
     |> Map.put(:current_view, :now_playing)
     |> Map.put(:zone, zone)
   end
 
-  defp set_view(%{ priv: %{ status: [_, _, status] }} = state) when status == "CHOOSE A ZONE" do
+  defp set_view(%{status: [_, _, "CHOOSE A ZONE"]} = state) do
     Map.put(state, :current_view, :choose_zone)
   end
 
-  defp set_view(%{ priv: %{ status: [zone, _, status] }} = state) when status == "SOURCE NOT SELECTED" do
+  defp set_view(%{status: [zone, _, "SOURCE NOT SELECTED"]} = state) do
     state
     |> Map.put(:current_view, :choose_source)
     |> Map.put(:zone, zone)
   end
 
-  defp set_view(%{ priv: %{ status: [zone, _, source], content: content } } = state) do
+  defp set_view(%{status: [zone, _, source], content: content} = state) do
     cond do
       not(is_source_list?(content)) and source == "Sonos" ->
         Map.put(state, :current_view, :now_playing)
         |> Map.put(:zone, zone)
         |> Map.put(:source, source)
         |> Map.merge(%{
-          priv: %{
-            status: state.priv.status,
-            content: [
-              "",
-              "",
-              "Use the Sonos App to",
-              "control the music",
-              ""
-            ]
-          }
+          content: [
+            "",
+            "",
+            "Use the Sonos App to",
+            "control the music",
+            ""
+          ]
         })
       is_source_list?(content) ->
         Map.put(state, :current_view, :choose_source)
@@ -219,19 +212,34 @@ defmodule HouseTunes.MZC do
 
   defp set_view(state), do: state
 
+  defp parse_status_info(body) when is_binary(body) do
+    body
+    |> Floki.find("table tr td")
+    |> Enum.map(&Floki.text/1)
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&String.replace(&1, ~r/AppleTV/, "Sonos"))
+  end
+
   defp parse_power_info(body) when is_binary(body) do
     body
-    |> Floki.find("script")
-    |> List.first()
-    |> Tuple.to_list()
-    |> Enum.at(2)
-    |> List.first()
+    |> get_power_content()
     |> String.split(";")
     |> Enum.map(&String.replace(&1, "var ", ""))
-    |> Enum.map(&String.split(&1, "="))
+    |> Enum.map(&String.split(&1, ~r/1=/))
     |> Enum.map(fn [k, v] -> {String.to_atom(k), String.to_integer(v) == 1} end)
     |> Map.new()
   end
+
+  defp get_power_content(body) when is_binary(body) do
+    with [{"script", _, [content]}] <- Floki.find(body, "script") do
+      content
+    else
+      _ ->
+        Logger.warn "Power content not found"
+        ""
+    end
+  end
+  defp get_power_content(_), do: ""
 
   defp is_source_list?(content) do
     content = MapSet.new(content)
@@ -247,10 +255,20 @@ defmodule HouseTunes.MZC do
   defp get(path) when is_binary(path) do
     retry with: exp_backoff() |> randomize() |> expiry(5_000) do
       HTTPoison.get("http://192.168.1.254/#{path}")
+    after
+      {_, response} -> response.body
+    else
+      _ -> ""
     end
-    |> Tuple.to_list()
-    |> Enum.at(1)
-    |> Map.get(:body)
   end
 
+  defp get_html(path) when is_binary(path) do
+    retry with: exp_backoff() |> randomize() |> expiry(5_000) do
+      HTTPoison.get("http://192.168.1.254/#{path}")
+    after
+      {:ok, response} -> {:ok, response}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end
