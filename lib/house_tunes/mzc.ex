@@ -4,6 +4,8 @@ defmodule HouseTunes.MZC do
 
   require Logger
 
+  @refresh 3000
+
   defmodule ServerState do
     defstruct content: [],
               current_view: :starting,
@@ -13,7 +15,6 @@ defmodule HouseTunes.MZC do
               power_on: false,
               source: nil,
               status: [],
-              version: nil,
               zone: nil
   end
 
@@ -22,93 +23,76 @@ defmodule HouseTunes.MZC do
     GenServer.call(__MODULE__, :status)
   end
 
-  def go_back(version) do
-    GenServer.call(__MODULE__, {:command, "SelMenuBk", version}, 10_000)
+  def go_back() do
+    GenServer.cast(__MODULE__, {:command, "SelMenuBk"})
   end
 
-  def select_option(option, version) when option < 7 do
-    GenServer.call(__MODULE__, {:command, "SelLine#{option}", version, 3000}, 10_000)
+  def select_option(option) when option < 7 do
+    GenServer.cast(__MODULE__, {:command, "SelLine#{option}"})
   end
 
-  def page_up(version) do
-    GenServer.call(__MODULE__, {:command, "SelPageUp", version}, 10_000)
+  def page_up() do
+    GenServer.cast(__MODULE__, {:command, "SelPageUp"})
   end
 
-  def page_down(version) do
-    GenServer.call(__MODULE__, {:command, "SelPageDn", version}, 10_000)
+  def page_down() do
+    GenServer.cast(__MODULE__, {:command, "SelPageDn"})
   end
 
-  def power_on(version) do
-    GenServer.call(__MODULE__, {:command, "SelPower1", version}, 10_000)
+  def power_on() do
+    GenServer.cast(__MODULE__, {:command, "SelPower1"})
   end
 
-  def power_off(version) do
-    GenServer.call(__MODULE__, {:command, "SelPower0", version}, 10_000)
+  def power_off() do
+    GenServer.cast(__MODULE__, {:command, "SelPower0"})
   end
 
-  def mute_on(version) do
-    GenServer.call(__MODULE__, {:command, "SelMute1", version}, 10_000)
+  def mute_on() do
+    GenServer.cast(__MODULE__, {:command, "SelMute1"})
   end
 
-  def mute_off(version) do
-    GenServer.call(__MODULE__, {:command, "SelMute0", version}, 10_000)
+  def mute_off() do
+    GenServer.cast(__MODULE__, {:command, "SelMute0"})
   end
 
-  def volume_down(version) do
-    GenServer.call(__MODULE__, {:command, "SelVolDn", version}, 10_000)
+  def volume_down() do
+    GenServer.cast(__MODULE__, {:command, "SelVolDn"})
   end
 
-  def volume_up(version) do
-    GenServer.call(__MODULE__, {:command, "SelVolUp", version}, 10_000)
-  end
-
-  def update_status() do
-    Process.send_after(__MODULE__, :update_status, 5000)
+  def volume_up() do
+    GenServer.cast(__MODULE__, {:command, "SelVolUp"})
   end
 
   # Server interface
 
-  def init(_) do
-    status = get_status()
-    update_status()
-    {:ok, status}
+  def init(args) do
+    {:ok, args, 0}
   end
 
   def start_link() do
     GenServer.start_link(__MODULE__, %ServerState{}, name: __MODULE__)
   end
 
-  def handle_info(:update_status, state) do
-    status = get_status()
-    update_status()
-    case Map.merge(state, %{ version: nil }) == Map.merge(status, %{ version: nil }) do
-      true ->
-        {:noreply, state}
-      false ->
-        {:noreply, status}
-    end
+  def handle_info(:timeout, state) do
+    Task.start(fn -> get_status() end)
+    {:noreply, state, @refresh}
   end
 
   def handle_call(:status, _, state) do
-    {:reply, state, state}
+    {:reply, state, state, @refresh}
   end
 
-  def handle_call({:command, command, version}, _, state) do
-    case version == state.version do
-      true ->
-        send_command_and_update(command, 2500)
-      false ->
-        {:reply, state, state}
-    end
+  def handle_cast({:status_updated, new_state}, _state) do
+    {:noreply, new_state, @refresh}
   end
 
-  def handle_call({:command, command, version, delay}, _, state) do
-    case version == state.version do
-      true ->
-        send_command_and_update(command, delay)
-      false ->
-        {:reply, state, state}
-    end
+  def handle_cast({:command, _command}, %{loading: true} = state) do
+    {:noreply, state, @refresh}
+  end
+
+  def handle_cast({:command, command}, state) do
+    Task.start(fn -> get(command) end)
+    {:noreply, %ServerState{state | loading: true}, @refresh}
   end
 
   defp get_controller_html() do
@@ -122,25 +106,22 @@ defmodule HouseTunes.MZC do
 
   defp get_status() do
     with {:ok, status, content} <- get_controller_html() do
-      %ServerState{}
-      |> set_status(status)
-      |> set_content(content)
-      |> set_view()
-      |> Map.put(:version, DateTime.to_unix(DateTime.utc_now()))
+      status =
+        %ServerState{}
+        |> set_status(status)
+        |> set_content(content)
+        |> set_view()
+        |> Map.put(:loading, false)
+      GenServer.cast(__MODULE__, {:status_updated, status})
     else
-      _ -> %ServerState{current_view: :controller_down}
+      _ ->
+        status =
+          %ServerState{
+            current_view: :controller_down,
+            loading: false
+          }
+        GenServer.cast(__MODULE__, {:status_updated, status})
     end
-  end
-
-  defp send_command_and_update(command, delay) do
-    send_command(command)
-    :timer.sleep(delay)
-    status = get_status()
-    {:reply, status, status}
-  end
-
-  defp send_command(command) do
-    get(command)
   end
 
   defp set_status(state, status_html) do

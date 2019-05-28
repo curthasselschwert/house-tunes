@@ -10,14 +10,12 @@
       </div>
     <% else %>
         <div class="view-header">
-          <input id="version" type="hidden" value="<%= @status.version %>">
           <div id="loader" class="loading-indicator">
             Loading...
           </div>
           <div class="zone-info">
             <%= if @status.zone do %>
               <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                <%= hidden_input f, :version, value: @status.version %>
                 <%= hidden_input f, :action, value: "go_back" %>
                 <%= submit class: "go-back", onclick: "loading()" do %>
                   ←
@@ -50,7 +48,6 @@
             <div class="options-list">
               <%= @status.content |> Enum.with_index |> Enum.map(fn {option, idx} -> %>
                 <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                  <%= hidden_input f, :version, value: @status.version %>
                   <%= hidden_input f, :action, value: "select_option" %>
                   <%= hidden_input f, :value, value: idx %>
                   <button type="submit" onclick="loading()" class="options-list__option <%= if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: "" %>">
@@ -66,14 +63,12 @@
           <%= if show_pagination?(@status) do %>
             <div class="pagination">
               <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                <%= hidden_input f, :version, value: @status.version %>
                 <%= hidden_input f, :action, value: "page_up" %>
                 <%= submit class: "action action--page-up", onclick: "loading()" do %>
                   ▲
                 <% end %>
               <% end %>
               <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                <%= hidden_input f, :version, value: @status.version %>
                 <%= hidden_input f, :action, value: "page_down" %>
                 <%= submit class: "action action--page-down", onclick: "loading()" do %>
                   ▼
@@ -89,14 +84,12 @@
 
               <%= if volume_enabled?(@status) and not(@status.muted) do %>
                 <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                  <%= hidden_input f, :version, value: @status.version %>
                   <%= hidden_input f, :action, value: "volume_up" %>
                   <%= submit class: "action action--volume-up", onclick: "loading()" do %>
                     Volume Up
                   <% end %>
                 <% end %>
                 <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                  <%= hidden_input f, :version, value: @status.version %>
                   <%= hidden_input f, :action, value: "volume_down" %>
                   <%= submit class: "action action--volume-down", onclick: "loading()" do %>
                     Volume Down
@@ -114,7 +107,6 @@
               <%= if volume_enabled?(@status) do %>
                 <%= if @status.muted do %>
                   <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                    <%= hidden_input f, :version, value: @status.version %>
                     <%= hidden_input f, :action, value: "mute_off" %>
                     <%= submit class: "action action--mute-off", onclick: "loading()" do %>
                       Unmute
@@ -122,7 +114,6 @@
                   <% end %>
                 <% else %>
                   <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                    <%= hidden_input f, :version, value: @status.version %>
                     <%= hidden_input f, :action, value: "mute_on" %>
                     <%= submit class: "action action--mute_on", onclick: "loading()" do %>
                       Mute
@@ -136,7 +127,6 @@
               <% end %>
 
               <%= form_for @conn, tunes_path(@conn, :update), fn f -> %>
-                <%= hidden_input f, :version, value: @status.version %>
                 <%= hidden_input f, :action, value: "power_off" %>
                 <%= submit class: action_disabled_class("action action--power-off", not(@status.power_on)), disabled: not(@status.power_on) do %>
                   Power Off
