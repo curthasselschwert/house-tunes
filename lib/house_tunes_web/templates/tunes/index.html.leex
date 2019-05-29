@@ -46,7 +46,32 @@
                 <div><%= line %></div>
               <% end %>
             </div>
-          <% else %>
+          <% end %>
+
+          <%= if @status.current_view == :choose_zone do %>
+            <div class="options-list">
+              <%= for zone <- zones_list(@status) do %>
+                <%= submit type: "submit", class: "options-list__option #{if @status.source && Regex.match?(~r/#{zone.name}/, @status.source), do: "options-list__option--active", else: ""}", phx_click: "select_option", phx_value: zone.index do %>
+                  <span class="zone-list__playing-indicator">
+                    <%= if zone.playing do %>
+                      <img class="volume-indicator" src="/images/volume_on.svg">
+                    <% end %>
+                  </span>
+                  <span class="options-list__name">
+                    <%= zone.name %>
+                  </span>
+                  <%= if zone.playing do %>
+                    <span class="zone-list__source">
+                      <%= zone.source %>
+                    </span>
+                  <% end %>
+                  <img class="options-list__marker" src="/images/marker.svg">
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+
+          <%= if @status.current_view == :choose_source do %>
             <div class="options-list">
               <%= for {option, idx} <- @content do %>
                 <%= submit type: "submit", class: "options-list__option #{if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: ""}", phx_click: "select_option", phx_value: idx do %>
@@ -58,6 +83,20 @@
               <% end %>
             </div>
           <% end %>
+
+          <%= if @status.current_view == :source_options do %>
+            <div class="options-list">
+              <%= for {option, idx} <- @content do %>
+                <%= submit type: "submit", class: "options-list__option #{if @status.source && Regex.match?(~r/#{option}/, @status.source), do: "options-list__option--active", else: ""}", phx_click: "select_option", phx_value: idx do %>
+                  <span>
+                    <%= option %>
+                  </span>
+                  <img class="options-list__marker" src="/images/marker.svg">
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+
           <%= if show_pagination?(@status) do %>
             <div class="pagination">
               <%= submit class: "action action--page-up", phx_click: "page_up" do %>

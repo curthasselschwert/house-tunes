@@ -16,7 +16,9 @@ defmodule HouseTunes.MZC do
               power_on: false,
               source: nil,
               status: [],
-              zone: nil
+              zone: nil,
+              zones: []
+
   end
 
   # Client interface
@@ -75,7 +77,7 @@ defmodule HouseTunes.MZC do
   end
 
   def handle_info(:timeout, state) do
-    Task.start(fn -> get_status() end)
+    Task.start(fn -> get_status(state) end)
     HouseTunesWeb.Endpoint.broadcast(@topic, "status", state)
     {:noreply, state, @refresh}
   end
@@ -109,22 +111,22 @@ defmodule HouseTunes.MZC do
     end
   end
 
-  defp get_status() do
+  defp get_status(state) do
     with {:ok, status, content} <- get_controller_html() do
       status =
-        %ServerState{}
+        state
         |> set_status(status)
         |> set_content(content)
         |> set_view()
+        |> update_zones()
         |> Map.put(:loading, false)
       GenServer.cast(__MODULE__, {:status_updated, status})
     else
       _ ->
         status =
-          %ServerState{
-            current_view: :controller_down,
-            loading: false
-          }
+          state
+          |> Map.put(:current_view, :controller_down)
+          |> Map.put(:loading, false)
         GenServer.cast(__MODULE__, {:status_updated, status})
     end
   end
@@ -161,7 +163,10 @@ defmodule HouseTunes.MZC do
   end
 
   defp set_view(%{status: [_, _, "CHOOSE A ZONE"]} = state) do
-    Map.put(state, :current_view, :choose_zone)
+    state
+    |> Map.put(:current_view, :choose_zone)
+    |> Map.put(:zone, nil)
+    |> Map.put(:source, nil)
   end
 
   defp set_view(%{status: [zone, _, "SOURCE NOT SELECTED"]} = state) do
@@ -197,6 +202,20 @@ defmodule HouseTunes.MZC do
   end
 
   defp set_view(state), do: state
+
+  defp update_zones(%{zone: nil} = state), do: state
+
+  defp update_zones(state) do
+    index = Enum.find_index(state.zones, fn ({name, _, _}) -> name == state.zone end)
+
+    zones =
+      case index do
+        nil -> List.insert_at(state.zones, 0, {state.zone, state.source, state.power_on})
+        index -> List.replace_at(state.zones, index, {state.zone, state.source, state.power_on})
+      end
+
+    Map.put(state, :zones, zones)
+  end
 
   defp parse_status_info(body) when is_binary(body) do
     body

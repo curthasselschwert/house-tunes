@@ -1,6 +1,19 @@
 defmodule HouseTunesWeb.TunesView do
   use HouseTunesWeb, :view
 
+  def zones_list(status) do
+    status.content
+    |> Enum.with_index()
+    |> Enum.map(fn {name, index} ->
+      status = Enum.find(status.zones, fn ({zone, _, _}) -> zone == name end)
+
+      case status do
+        nil -> %{index: index, name: name, source: nil, playing: false}
+        {_name, source, playing} -> %{index: index, name: name, source: source, playing: playing}
+      end
+    end)
+  end
+
   def view_title(status) do
     case status.power_on do
       true -> select_title(status)

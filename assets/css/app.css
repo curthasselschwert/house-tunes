@@ -132,7 +132,6 @@ body {
   display: flex;
   font-family: 'Montserrat', sans-serif;
   font-size: 20px;
-  justify-content: space-between;
   line-height: 34px;
   outline: 0;
   padding: 0 12px;
@@ -144,8 +143,34 @@ body {
   background: hsl(353, 82%, 50%);
 }
 
+.zone-list__playing-indicator {
+  margin: 0 6px 0 0;
+  width: 16px;
+}
+
+.zone-list__playing-indicator .volume-indicator {
+  display: block;
+  width: 100%;
+}
+
+.options-list__name {
+  margin: 0 8px 0 0;
+}
+
+.zone-list__source {
+  font-size: 15px;
+  font-weight: 300;
+  margin: 0 0 0 auto;
+  text-shadow: none;
+}
+
+.zone-list__source + .options-list__marker {
+  margin-left: 10px;
+}
+
 .options-list__marker {
   height: 12px;
+  margin: 0 0 0 auto;
   opacity: 0.7;
 }
 
