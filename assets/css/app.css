@@ -67,6 +67,7 @@ body {
   background: none;
   border: none;
   color: hsla(0, 0%, 100%, 0.99);
+  cursor: pointer;
   font-size: 32px;
   margin: 0;
   outline: 0;
@@ -168,6 +169,7 @@ body {
   border-radius: 2px;
   box-sizing: border-box;
   color: hsla(0, 0%, 100%, 0.99);
+  cursor: pointer;
   display: inline-block;
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
