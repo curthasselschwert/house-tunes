@@ -4,7 +4,7 @@ defmodule HouseTunes.MZC do
 
   require Logger
 
-  @refresh 3000
+  @refresh 10_000
   @topic "status"
 
   defmodule ServerState do
@@ -97,7 +97,7 @@ defmodule HouseTunes.MZC do
     new_state = %ServerState{state | loading: true}
     Task.start(fn -> get(command) end)
     HouseTunesWeb.Endpoint.broadcast(@topic, "status", new_state)
-    {:noreply, new_state, @refresh}
+    {:noreply, new_state, 5000}
   end
 
   defp get_controller_html() do
