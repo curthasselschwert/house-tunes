@@ -1,4 +1,9 @@
 <div class="house-tunes">
+  <%= if @status.loading do %>
+    <div class="loading">
+      Loading...
+    </div>
+  <% end %>
   <%= if @status.current_view == :controller_down do %>
     <div class="controller-down">
       House tunes cannot connect to the controller. Please unplug the
@@ -12,7 +17,6 @@
     <% else %>
         <div class="view-header">
           <div id="loader" class="loading-indicator">
-            <%= if @status.loading, do: "Loading...", else: "" %>
           </div>
           <div class="zone-info">
             <%= if @status.zone do %>

@@ -26,6 +26,21 @@ body {
   }
 }
 
+.loading {
+  align-items: center;
+  background: hsla(358, 82%, 57%, 0.7);
+  box-sizing: border-box;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  left: 0;
+  padding: 32px;
+  position: fixed;
+  text-align: center;
+  top: 0;
+  width: 100%;
+}
+
 .controller-down,
 .app-starting {
   align-items: center;
